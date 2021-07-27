@@ -1,4 +1,5 @@
 const express = require("express");
+const auth = require("../../middleware/auth");
 const router = express.Router();
 
 const bcrypt = require("bcryptjs");
@@ -65,7 +66,7 @@ router.post(
 
       jwt.sign(
         payload,
-        config.get("jwtSecret"),
+        process.env.jwtSecret,
         { expiresIn: 360000 },
         (error, token) => {
           if (error) throw error;
@@ -78,5 +79,64 @@ router.post(
     }
   }
 );
+
+//edit user, change username, email password etc
+router.put("/:id", auth, async (req, res) => {
+  const {
+    name, 
+    email, 
+    password
+  } = req.body;
+
+  //build a user object based on the fields submitted
+  const updateFields = {};
+  if (name) updateFields.name = name;
+  if (email) updateFields.email = email;
+  if (password) {
+    const salt = await bcrypt.genSalt(10);
+
+    updateFields.password = await bcrypt.hash(password, salt);
+  }
+
+  try {
+    
+    const userToUpdate = await User.findById(req.params.id);
+
+    if (!userToUpdate) return res.status(404).json({ msg: "User not found" });
+
+    if (userToUpdate.id.toString() !== req.user.id) {
+      return res.status(401).json({ msg: "Not authorized" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateFields },
+      { $new: true }
+    );
+
+    res.json(updatedUser);
+
+  } catch (error) {
+    console.error(error.message);
+  }
+});
+
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    
+    const userToDelete = await User.findById(req.params.id);
+
+    if (!userToDelete) return res.status(404).json({ msg: "User not found" });
+
+    if (userToDelete.id.toString() !== req.user.id) {
+      return res.status(401).json({ msg: "Not authorized" });
+    }
+    userToDelete = await User.findByIdAndDelete(req.params.id);
+    res.json(userToDelete);
+    //
+  } catch (error) {
+    console.error(error.message);
+  }
+});
 
 module.exports = router;
