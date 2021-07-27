@@ -81,7 +81,7 @@ router.post(
 );
 
 //edit user, change username, email password etc
-router.put("/:id", auth, async (req, res) => {
+router.put("/", auth, async (req, res) => {
   const {
     name, 
     email, 
@@ -100,40 +100,34 @@ router.put("/:id", auth, async (req, res) => {
 
   try {
     
-    const userToUpdate = await User.findById(req.params.id);
+    let user = await User.findById(req.user.id);
 
-    if (!userToUpdate) return res.status(404).json({ msg: "User not found" });
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
-    if (userToUpdate.id.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "Not authorized" });
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
+    user = await User.findByIdAndUpdate(
+      req.user.id,
       { $set: updateFields },
       { $new: true }
     );
 
-    res.json(updatedUser);
+    res.status(500).json({msg: "User updated"});
 
   } catch (error) {
     console.error(error.message);
   }
 });
 
-router.delete("/:id", auth, async (req, res) => {
+router.delete("/", auth, async (req, res) => {
   try {
     
-    const userToDelete = await User.findById(req.params.id);
+    let user = await User.findById(req.user.id);
 
-    if (!userToDelete) return res.status(404).json({ msg: "User not found" });
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
-    if (userToDelete.id.toString() !== req.user.id) {
-      return res.status(401).json({ msg: "Not authorized" });
-    }
-    userToDelete = await User.findByIdAndDelete(req.params.id);
-    res.json(userToDelete);
-    //
+  
+    user = await User.findByIdAndDelete(req.user.id);
+    res.status(500).json({msg: "User deleted successfully"});
+    
   } catch (error) {
     console.error(error.message);
   }
