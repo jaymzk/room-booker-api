@@ -19,6 +19,7 @@ const AppointmentSchema = new mongoose.Schema({
   },
   notes: {
     type: String,
+    maxLength: 400
   },
   dateStamp: {
     type: Date,
