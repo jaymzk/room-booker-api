@@ -18,9 +18,11 @@ app.listen(PORT, ()=> {
 app.use(express.json({extended: false}));
 
 //define routes
-app.use("/api/users", require("./routes/api/users"));
-app.use("/api/auth", require("./routes/api/auth"));
+app.use("/api/users", require("./routes/api/users"))
+app.use("/api/auth", require("./routes/api/auth"))
 app.use("/api/rooms", require("./routes/api/rooms"))
+app.use("/api/appointments", require("./routes/api/appointments"))
+
 
 app.get('/', (req, res)=> {
   res.send('Hello world')

@@ -5,10 +5,6 @@ const AppointmentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "users",
   },
-  date: {
-    type: Date,
-    required: true,
-  },
   room: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "rooms"

@@ -110,7 +110,7 @@ router.put("/", auth, async (req, res) => {
       { $new: true }
     );
 
-    res.status(500).json({msg: "User updated"});
+    res.status(200).json({msg: "User updated"});
 
   } catch (error) {
     console.error(error.message);
@@ -126,10 +126,11 @@ router.delete("/", auth, async (req, res) => {
 
   
     user = await User.findByIdAndDelete(req.user.id);
-    res.status(500).json({msg: "User deleted successfully"});
+    res.status(200).json({msg: "User deleted successfully"});
     
   } catch (error) {
     console.error(error.message);
+    res.status(500)
   }
 });
 

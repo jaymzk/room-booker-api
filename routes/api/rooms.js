@@ -44,7 +44,7 @@ router.post(
 
       await room.save();
 
-      res.status(500).json({"msg": "Room successfully created."})
+      return res.status(500).json({"msg": "Room successfully created."})
 
     } catch (error) {
       console.error(error.message);
