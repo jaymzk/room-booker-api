@@ -31,7 +31,7 @@ console.log(endOfDate)
 
 //now a query to the db to get all of the appointments for that particular room on that particular day
 
-const todaysAppointments = await Appointment.find({room})
+const todaysAppointments = await Appointment.find({room, startTime: {$gte: startOfDate, $lte: endOfDate}})
 
 console.log(todaysAppointments)
 

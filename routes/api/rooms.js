@@ -6,9 +6,15 @@ const { check, validationResult } = require("express-validator");
 
 const Room = require("../../models/Room");
 
-//basic get route for testing
-router.get('/', async(req, res)=> {
-  res.send('A OK from the rooms route')
+//get all rooms
+router.get('/', auth,async(req, res)=> {
+  try {
+    const rooms = await Room.find()
+
+    res.status(200).json(rooms)
+    } catch(error) {
+      res.status(404).json({msg: error.message})
+    }
 })
 
 //create room, public
@@ -44,7 +50,7 @@ router.post(
 
       await room.save();
 
-      return res.status(500).json({"msg": "Room successfully created."})
+      return res.status(200).json({"msg": "Room successfully created."})
 
     } catch (error) {
       console.error(error.message);
@@ -79,7 +85,7 @@ router.put("/", auth, async (req, res) => {
       { $new: true }
     );
 
-    res.status(500).json({msg: "Room updated"});
+    res.status(200).json({msg: "Room updated"});
 
   } catch (error) {
     console.error(error.message);
@@ -96,10 +102,11 @@ router.delete("/", auth, async (req, res) => {
 
     room = await Room.findOneAndDelete({name})
 
-    res.status(500).json({msg: "Room Deleted"});
+    res.status(200).json({msg: "Room Deleted"});
     
   } catch (error) {
     console.error(error.message);
+    return res.status(500).json({error: error.message})
   }
 });
 
