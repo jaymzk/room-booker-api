@@ -100,7 +100,16 @@ console.log(endOfDate)
 
 const todaysAppointments = await Appointment.find({room, startTime: {$gte: startOfDate, $lte: endOfDate}})
 
-console.log(todaysAppointments)
+//check for clashes
+
+const clashes = todaysAppointments.filter(appointment => {
+  return (
+  appointment.startTime > startTime && appointment.startTime < endTime) ||
+  (appointment.endTime > startTime && appointment.endTime < endTime) ||
+  (appointment.startTime < startTime && appointment.endTime > endTime)
+  })
+
+if(clashes.length > 0 ) return res.status(500).json({clashes})
 
 try {
 
