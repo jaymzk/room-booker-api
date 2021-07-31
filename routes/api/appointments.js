@@ -54,34 +54,38 @@ res.status(404).json({message: error.message})
 
 //make an appointment
 router.post("/", auth, async(req, res)=> {
-const { room, startTime, endTime, notes } = req.body;
+let { room, startTime, endTime, notes } = req.body;
 
 const user = req.user.id
+
+//start and end times to dates for comparision and validation purposes
+startTime = new Date(startTime)
+endTime = new Date(endTime)
 
 //first, a bit of validation of the submitted data
 //set up error object
 const errors = []
 
 //check dates are not in the past
-if (Date.parse(startTime) < Date.now()) {
+if (startTime < Date.now()) {
   errors.push("Start time cannot be in the past")
 }
 
-if (Date.parse(endTime) < Date.now()) {
+if (endTime < Date.now()) {
    errors.push("End time cannot be in the past")
 }
 
 //check end time is after start time
 
-if (Date.parse(endTime) <= Date.parse(startTime)) {errors.push("End time must be after start time")}
+if (endTime <= startTime) {errors.push("End time must be after start time")}
 
 if(errors.length > 0) {
-  return res.status(500).json({errors: timeErrors})
+  return res.status(500).json({errors})
 }
 
 //get the date from the start time by slicing that bit off. 
 
-const date = startTime.slice(0,10)
+const date = startTime.toISOString().slice(0,10)
 console.log(date)
 
 //get a start time for the search by creating a date object from the date, which will start at 00:00 on that date
