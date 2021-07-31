@@ -1,4 +1,5 @@
 const express = require("express")
+const { check, validationResult } = require("express-validator");
 const router = express.Router()
 
 const auth = require("../../middleware/auth");
@@ -22,7 +23,7 @@ router.get("/", async (req, res) => {
 
 router.get("/today", auth, async(req, res)=>{
 
-//get todays date then slice off the time component
+//get todays date then slice off the time component, setting the time to 00:00 by creating a new date with just the date
 
 const date = new Date().toISOString().slice(0,10)
 
@@ -56,6 +57,27 @@ router.post("/", auth, async(req, res)=> {
 const { room, startTime, endTime, notes } = req.body;
 
 const user = req.user.id
+
+//first, a bit of validation of the submitted data
+//set up error object
+const errors = []
+
+//check dates are not in the past
+if (Date.parse(startTime) < Date.now()) {
+  errors.push("Start time cannot be in the past")
+}
+
+if (Date.parse(endTime) < Date.now()) {
+   errors.push("End time cannot be in the past")
+}
+
+//check end time is after start time
+
+if (Date.parse(endTime) <= Date.parse(startTime)) {errors.push("End time must be after start time")}
+
+if(errors.length > 0) {
+  return res.status(500).json({errors: timeErrors})
+}
 
 //get the date from the start time by slicing that bit off. 
 
