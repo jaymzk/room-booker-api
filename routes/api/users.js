@@ -31,7 +31,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, password, privilegeLevel } = req.body;
+    const { name, email, password, status } = req.body;
 
     try {
       //check user exists
@@ -43,7 +43,7 @@ router.post(
 
       user = new User({
         name,
-        privilegeLevel,
+        status,
         email,
         password,
       });
@@ -60,7 +60,7 @@ router.post(
       const payload = {
         user: {
           id: user.id,
-          privilegeLevel: user.privilegeLevel,
+          status: user.status,
         },
       };
 
