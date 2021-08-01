@@ -107,10 +107,11 @@ const clashes = todaysAppointments.filter(appointment => {
 
 if(clashes.length > 0 ) return res.status(500).json({clashes})
 
-//knock 1ms off the end time so it doesn't clash with the start of the next meeting
+//knock 1ms off the end time so it doesn't clash with the start of the next appointment
 
-endTime = (endTime.getTime()-1).toISOString()
+endTime = endTime.getTime()-1
 
+//finally, create the appointment!!
 try {
 
   const appointment = new Appointment({
