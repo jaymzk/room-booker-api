@@ -13,7 +13,11 @@ const RoomSchema = new mongoose.Schema({
   info: {
     type: String,
     maxLength: 400
+  },
+  image: {
+    type: String
   }
+
 });
 
 module.exports = Room = mongoose.model("room", RoomSchema);

@@ -1,5 +1,6 @@
 const express = require("express");
 const auth = require("../../middleware/auth");
+const admin = require("../../middleware/admin")
 const router = express.Router();
 
 const { check, validationResult } = require("express-validator");
@@ -7,17 +8,20 @@ const { check, validationResult } = require("express-validator");
 const Room = require("../../models/Room");
 
 //get all rooms
-router.get('/', auth,async(req, res)=> {
+router.get('/', auth, async(req, res)=> {
   try {
     const rooms = await Room.find()
 
     res.status(200).json(rooms)
+
     } catch(error) {
+
       res.status(404).json({msg: error.message})
+
     }
 })
 
-//create room, public
+//create room, admin
 router.post(
   "/",
   [
@@ -25,14 +29,14 @@ router.post(
     check("capacity", "Room Capacity is required").not().isEmpty(),
     check("info", "Info must be 400 characters or less").isLength({max: 400})
     
-  ],
+  ], admin,
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, capacity, info} = req.body;
+    const { name, capacity, info, image} = req.body;
 
     try {
       //check if room exists already
@@ -45,7 +49,8 @@ router.post(
       room = new Room({
         name,
         capacity,
-        info
+        info, 
+        image
       });
 
       await room.save();
@@ -59,28 +64,33 @@ router.post(
   }
 );
 
-//edit room, info etc
-router.put("/", auth, async (req, res) => {
+//edit room, info etc. admin
+router.put("/:id", admin, async (req, res) => {
   const {
     name, 
     capacity,
-    info
+    info,
+    image
   } = req.body;
+
+  console.log(req.params.id)
 
   //build a user object based on the fields submitted
   const updateFields = {};
   if (name) updateFields.name = name;
   if (capacity) updateFields.capacity = email;
-  if (info) updateFields.info = info 
+  if (info) updateFields.info = info;
+  if (image) updateFields.image = image; 
+
+  console.log(req.params.id)
 
   try {
     
-    let room = await Room.findOne({ name });
-
+    let room = await Room.findById(req.params.id);
     if (!Room) return res.status(404).json({ msg: "Room not found" });
 
 
-    room = await Room.findOneAndUpdate({name},
+    room = await Room.findByIdAndUpdate(req.params.id,
       { $set: updateFields },
       { $new: true }
     );
@@ -92,15 +102,15 @@ router.put("/", auth, async (req, res) => {
   }
 });
 
-router.delete("/", auth, async (req, res) => {
-  const {name} = req.body
+router.delete("/:id", admin, async (req, res) => {
+ 
   try {
 
-    let room = await Room.findOne({ name });
+    let room = await Room.findById(req.params.id);
 
     if (!room) return res.status(404).json({ msg: "Room not found" });
 
-    room = await Room.findOneAndDelete({name})
+    room = await Room.findByIdAndDelete(req.params.id)
 
     res.status(200).json({msg: "Room Deleted"});
     
