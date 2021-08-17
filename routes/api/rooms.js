@@ -1,6 +1,8 @@
 const express = require("express");
+const multer = require("multer")
 const auth = require("../../middleware/auth");
 const admin = require("../../middleware/admin")
+
 const router = express.Router();
 
 const { check, validationResult } = require("express-validator");
@@ -73,7 +75,6 @@ router.put("/:id", admin, async (req, res) => {
     image
   } = req.body;
 
-  console.log(req.params.id)
 
   //build a user object based on the fields submitted
   const updateFields = {};
@@ -81,8 +82,6 @@ router.put("/:id", admin, async (req, res) => {
   if (capacity) updateFields.capacity = email;
   if (info) updateFields.info = info;
   if (image) updateFields.image = image; 
-
-  console.log(req.params.id)
 
   try {
     
@@ -119,5 +118,23 @@ router.delete("/:id", admin, async (req, res) => {
     return res.status(500).json({error: error.message})
   }
 });
+
+//upload an image 
+const upload = multer({
+  dest: "images",
+  limits: {
+    fileSize: 1000000,
+  },
+  fileFilter (req, file, cb){
+    if(!file.originalname.endsWith('.jpg')) {
+      return cb(new Error("Please upload an image"))
+    }    
+    cb(undefined, true)
+  } 
+})
+
+router.post("/image", upload.single("image"), (req, res)=>{
+  res.send()
+})
 
 module.exports = router;
