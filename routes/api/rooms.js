@@ -126,8 +126,9 @@ const upload = multer({
     fileSize: 1000000,
   },
   fileFilter (req, file, cb){
-    if(!file.originalname.endsWith('.jpg')) {
-      return cb(new Error("Please upload an image"))
+    const ext = path.extname(file.originalname);
+        if(ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
+            return callback(new Error('Only images are allowed'))
     }    
     cb(undefined, true)
   } 
