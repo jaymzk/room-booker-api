@@ -72,7 +72,6 @@ router.put("/:id", admin, async (req, res) => {
     name, 
     capacity,
     info,
-    image
   } = req.body;
 
 
@@ -81,7 +80,7 @@ router.put("/:id", admin, async (req, res) => {
   if (name) updateFields.name = name;
   if (capacity) updateFields.capacity = email;
   if (info) updateFields.info = info;
-  if (image) updateFields.image = image; 
+  
 
   try {
     
@@ -94,7 +93,7 @@ router.put("/:id", admin, async (req, res) => {
       { $new: true }
     );
 
-    res.status(200).json({msg: "Room updated"});
+    res.status(200).json(room);
 
   } catch (error) {
     console.error(error.message);
@@ -121,20 +120,49 @@ router.delete("/:id", admin, async (req, res) => {
 
 //upload an image 
 const upload = multer({
-  dest: "images",
   limits: {
     fileSize: 1000000,
   },
   fileFilter (req, file, cb){
-    if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+    if(!file.originalname.match(/\.(jpg|jpeg|png|svg)$/)) {
       return cb(new Error("Please upload an image"))
     }    
     cb(undefined, true)
   } 
 })
 
-router.post("/image", upload.single("image"), (req, res)=>{
-  res.send()
+router.post("/image/:id", admin, upload.single("image"), async (req, res) => {
+
+let room = await Room.findById(req.params.id);
+
+  if (!Room) return res.status(404).json({ msg: "Room not found" });
+
+  room.image = req.file.buffer
+
+  await room.save()
+
+  res.status(200).json({msg: 'Image uploaded sucessfully'})
+}, (error, req, res, next) => {
+  res.status(400).json({msg: error.message})
+})
+
+//delete an image
+router.delete("/image/:id", admin, async (req, res) => {
+  try {
+    let room = await Room.findById(req.params.id);
+
+    if (!room) return res.status(404).json({ msg: "Room not found" });
+
+    if (!room.image) return res.status(404).json({ msg: "Image not found" });
+
+    room = await Room.findByIdAndUpdate(req.params.id, {$unset: {image: 1 }})
+
+    res.status(200).json(room);
+    
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({error: error.message})
+  }
 })
 
 module.exports = router;

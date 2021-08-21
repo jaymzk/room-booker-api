@@ -15,7 +15,7 @@ const RoomSchema = new mongoose.Schema({
     maxLength: 400
   },
   image: {
-    type: String
+    type: Buffer
   }
 
 });
