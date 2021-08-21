@@ -165,4 +165,22 @@ router.delete("/image/:id", admin, async (req, res) => {
   }
 })
 
+router.get("/image/:id",admin, async (req, res) => {
+  try{
+    const room = await Room.findById(req.params.id)
+    console.log(room)
+
+    if(!room) {res.status(404).json({msg: "Room not found"})} 
+
+     if(!room.image) {res.status(404).json({msg: "Image not found"})} 
+
+    res.set("Content-Type", "image/jpg")
+    res.send(room.image)
+
+  }catch(error) {
+    res.status(404).json({msg: "Image not found"})
+  }
+
+})
+
 module.exports = router;
