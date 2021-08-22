@@ -1,5 +1,6 @@
 const express = require("express");
 const multer = require("multer")
+const sharp = require("sharp")
 const auth = require("../../middleware/auth");
 const admin = require("../../middleware/admin")
 
@@ -137,7 +138,9 @@ let room = await Room.findById(req.params.id);
 
   if (!Room) return res.status(404).json({ msg: "Room not found" });
 
-  room.image = req.file.buffer
+const buffer = await sharp(req.file.buffer).resize({width:600, height: 600}).png().toBuffer()
+
+  room.image = buffer
 
   await room.save()
 
@@ -157,7 +160,7 @@ router.delete("/image/:id", admin, async (req, res) => {
 
     room = await Room.findByIdAndUpdate(req.params.id, {$unset: {image: 1 }})
 
-    res.status(200).json(room);
+    res.status(200).json({msg: "Image deleted"});
     
   } catch (error) {
     console.error(error.message);
@@ -165,7 +168,8 @@ router.delete("/image/:id", admin, async (req, res) => {
   }
 })
 
-router.get("/image/:id",admin, async (req, res) => {
+//route to get pics for img tags
+router.get("/image/:id", async (req, res) => {
   try{
     const room = await Room.findById(req.params.id)
     console.log(room)
@@ -174,10 +178,10 @@ router.get("/image/:id",admin, async (req, res) => {
 
      if(!room.image) {res.status(404).json({msg: "Image not found"})} 
 
-    res.set("Content-Type", "image/jpg")
+    res.set("Content-Type", "image/png")
     res.send(room.image)
 
-  }catch(error) {
+  } catch(error) {
     res.status(404).json({msg: "Image not found"})
   }
 
