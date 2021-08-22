@@ -6,7 +6,7 @@ const auth = require("../../middleware/auth");
 
 const Appointment = require("../../models/Appointment")
 
-//get all appointments
+//get all appointments. Test route
 router.get("/", async (req, res) => {
   
   try{
@@ -19,14 +19,14 @@ router.get("/", async (req, res) => {
   }
 })
 
-//get all of today's appointments
 
-router.get("/today", auth, async(req, res)=>{
+//get all appointments on a certain date
 
-//get todays date then slice off the time component, setting the time to 00:00 by creating a new date with just the date
+router.get("/date/:date", auth, async(req, res)=>{
 
-const date = new Date().toISOString().slice(0,10)
+//get date then slice off the time component, setting the time to 00:00 by creating a new date with just the date
 
+let date = new Date(req.params.date).toISOString().slice(0,10)
 
 //get a start time for the search by creating a date object from the date, which will start at 00:00 on that date
 const startOfDate = new Date(date)
@@ -34,15 +34,15 @@ const startOfDate = new Date(date)
 //create an end time for the search by concantating  23:59:59 to the date and then creating a new date object
 const endOfDate = new Date(date + "T23:59:59.999")
 
-//now a query to the db to get all of the appointments for that particular room on that particular day
+//now a query to the db to get all of the appointments for that particular day
 
 try {
 
-const todaysAppointments = await Appointment.find({startTime: {$gte: startOfDate, $lte: endOfDate}})
+const todaysAppointments = await Appointment.find({startTime: {$gte: startOfDate, $lte: endOfDate}}).sort({startTime: 1, room: 1})
 
 console.log(todaysAppointments)
 
-res.status(200).send("success so far")
+res.status(200).json({todaysAppointments})
 } catch(error) {
 console.error(error.message)
 res.status(404).json({message: error.message})
