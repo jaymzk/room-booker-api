@@ -38,11 +38,9 @@ const endOfDate = new Date(date + "T23:59:59.999")
 
 try {
 
-const todaysAppointments = await Appointment.find({startTime: {$gte: startOfDate, $lte: endOfDate}}).sort({startTime: 1, room: 1})
+const appointments = await Appointment.find({startTime: {$gte: startOfDate, $lte: endOfDate}}).populate("user", ["name", "email"]).populate("room", "name").sort({startTime: 1, room: 1})
 
-console.log(todaysAppointments)
-
-res.status(200).json({todaysAppointments})
+res.status(200).json({data:appointments})
 } catch(error) {
 console.error(error.message)
 res.status(404).json({message: error.message})

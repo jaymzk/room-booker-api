@@ -1,14 +1,15 @@
 const mongoose = require("mongoose");
 
 const AppointmentSchema = new mongoose.Schema({
+
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "users",
+    ref: "user",
     required: true
   },
   room: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "rooms",
+    ref: "room",
     required: true
   },
   startTime: {
