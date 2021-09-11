@@ -131,6 +131,8 @@ res.status(500).json({ msg: "Server Error" });
 })
 
 //delete appointment
+//Either auth and it's your appointment, or admin.
+
 router.delete("/:id", auth, async(req, res)=>{
   
   try {
