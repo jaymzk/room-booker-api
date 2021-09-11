@@ -50,7 +50,6 @@ res.status(404).json({message: error.message})
 //make an appointment
 router.post("/", auth, async(req, res)=> {
 let { room, startTime, endTime, notes } = req.body;
-
 const user = req.user.id
 
 //start and end times to dates for comparision and validation purposes
@@ -92,7 +91,7 @@ const endOfDate = new Date(date + "T23:59:59.999")
 
 //now a query to the db to get all of the appointments for that particular room on that particular day
 
-const todaysAppointments = await Appointment.find({room, startTime: {$gte: startOfDate, $lte: endOfDate}})
+const todaysAppointments = await Appointment.find({room, startTime: {$gte: startOfDate, $lte: endOfDate}}).populate("user", ["name", "email"]).populate("room", "name").sort({startTime: 1, room: 1})
 
 //check for clashes
 
@@ -129,6 +128,29 @@ catch(error) {
 console.error(error.message)
 res.status(500).json({ msg: "Server Error" });
 }
+})
+
+//delete appointment
+router.delete("/:id", auth, async(req, res)=>{
+  
+  try {
+    const appointment = await Appointment.findById(req.params.id)
+  
+    if(!appointment) {
+      return res.status(404).json({msg: "Apppointment not found"})
+    }
+  //check user is allowed to delete post. It must be either their post or they must be an admin
+  if((appointment.user.toString() !== req.user.id) && req.user.status !==1){
+    return res.status(401).json({msg: "User not authorized"})
+  }
+  await appointment.remove()
+
+  res.status(200).json({msg: "Appointment deleted"})
+
+  } catch(error) {
+    console.error(error.message)
+    res.status(500).send("Server Error")
+  }
 })
 
 

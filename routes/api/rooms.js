@@ -81,13 +81,11 @@ router.put("/:id", admin, async (req, res) => {
   if (name) updateFields.name = name;
   if (capacity) updateFields.capacity = email;
   if (info) updateFields.info = info;
-  
 
   try {
     
     let room = await Room.findById(req.params.id);
     if (!Room) return res.status(404).json({ msg: "Room not found" });
-
 
     room = await Room.findByIdAndUpdate(req.params.id,
       { $set: updateFields },
