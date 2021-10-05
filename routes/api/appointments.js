@@ -132,7 +132,7 @@ res.status(500).json({ msg: "Server Error" });
 
 //edit an appointment 
 router.put("/:id", auth, async(req, res)=>{
-    const {
+    let {
       room, 
       startTime, 
       endTime, 
@@ -140,6 +140,9 @@ router.put("/:id", auth, async(req, res)=>{
     } = req.body
     const user = req.user.id
     const appointment_id = req.params.id
+
+    startTime = new Date(startTime)
+    endTime = new Date(endTime)
 
     const errors = []
 
@@ -181,7 +184,6 @@ if (endTime <= startTime) {errors.push("End time must be after start time")}
 
 if (room || startTime || endTime) {
  
-
 const date = startTime.toISOString().slice(0,10)
 
 const startOfDate = new Date(date)
@@ -195,6 +197,8 @@ const todaysAppointments = await Appointment.find({room, startTime: {$gte: start
 //check for clashes
 
 //to do: appointments that start / finish at exactly the same time
+
+//also to do: remove the current appointment from clashes we don't want it clashing with itself
 
 const clashes = todaysAppointments.filter(appointment => {
   return (
