@@ -177,8 +177,7 @@ if (endTime <= startTime) {errors.push("End time must be after start time")}
     return res.status(500).json({errors})
     }
 
-    console.log(room, startTime, endTime, notes, user, appointment_id)
-
+  
 
 //now check for clashes. Same as before. No need to do this if only the notes are being changed
 
@@ -200,12 +199,14 @@ const todaysAppointments = await Appointment.find({room, startTime: {$gte: start
 
 //also to do: remove the current appointment from clashes we don't want it clashing with itself
 
-const clashes = todaysAppointments.filter(appointment => {
+let clashes = todaysAppointments.filter(appointment => {
   return (
   appointment.startTime >= startTime && appointment.startTime <= endTime) ||
   (appointment.endTime >= startTime && appointment.endTime <= endTime) ||
   (appointment.startTime <= startTime && appointment.endTime >= endTime)
   })
+
+clashes = clashes.filter(clash => clash._id.toString()!== appointment_id)
 
 if(clashes.length > 0) return res.status(500).json({clashes})
 
@@ -221,12 +222,12 @@ try {
   let appointment = await Appointment.findById(appointment_id);
     if (!Appointment) return res.status(404).json({ msg: "Appointment not found" });
 
-    room = await Appointment.findByIdAndUpdate(appointment_id,
+    appointment = await Appointment.findByIdAndUpdate(appointment_id,
       { $set: updateFields },
       { $new: true }
     );
 
-    res.status(200).json(appointment);
+    res.status(200).json(msg: "Appointment amended successfully");
 
 } catch(error) {
     console.error(error.message);
