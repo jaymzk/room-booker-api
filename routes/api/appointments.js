@@ -102,7 +102,7 @@ const clashes = todaysAppointments.filter(appointment => {
   (appointment.startTime <= startTime && appointment.endTime >= endTime)
   })
 
-if(clashes.length > 0 ) return res.status(500).json({clashes})
+if(clashes.length > 0) return res.status(500).json({clashes})
 
 //knock 1ms off the end time so it doesn't clash with the start of the next appointment
 
@@ -130,6 +130,108 @@ res.status(500).json({ msg: "Server Error" });
 }
 })
 
+//edit an appointment 
+router.put("/:id", auth, async(req, res)=>{
+    const {
+      room, 
+      startTime, 
+      endTime, 
+      notes
+    } = req.body
+    const user = req.user.id
+    const appointment_id = req.params.id
+
+    const errors = []
+
+    //same sort of validation as making an appointment but checking for a few extra fields
+
+if (startTime < Date.now()) {
+  errors.push("Start time cannot be in the past")
+}
+
+if (endTime < Date.now()) {
+   errors.push("End time cannot be in the past")
+}
+
+if(room && !startTime) {
+  errors.push("Please supply a start time")
+}
+if(room && !endTime) {
+  errors.push("Please supply a duration")
+}
+if(endTime && !startTime) {
+  errors.push("Please supply a start time")
+}
+if(startTime && !endTime) {
+  errors.push("Please supply a duration")
+}
+
+//check end time is after start time
+
+if (endTime <= startTime) {errors.push("End time must be after start time")}
+
+  if(errors.length > 0) {
+    return res.status(500).json({errors})
+    }
+
+    console.log(room, startTime, endTime, notes, user, appointment_id)
+
+
+//now check for clashes. Same as before. No need to do this if only the notes are being changed
+
+if (room || startTime || endTime) {
+ 
+
+const date = startTime.toISOString().slice(0,10)
+
+const startOfDate = new Date(date)
+
+const endOfDate = new Date(date + "T23:59:59.999")
+
+//now a query to the db to get all of the appointments for that particular room on that particular day
+
+const todaysAppointments = await Appointment.find({room, startTime: {$gte: startOfDate, $lte: endOfDate}}).populate("user", ["name", "email"]).populate("room", "name").sort({startTime: 1, room: 1})
+
+//check for clashes
+
+//to do: appointments that start / finish at exactly the same time
+
+const clashes = todaysAppointments.filter(appointment => {
+  return (
+  appointment.startTime >= startTime && appointment.startTime <= endTime) ||
+  (appointment.endTime >= startTime && appointment.endTime <= endTime) ||
+  (appointment.startTime <= startTime && appointment.endTime >= endTime)
+  })
+
+if(clashes.length > 0) return res.status(500).json({clashes})
+
+}
+
+ const updateFields = {};
+  if (startTime) updateFields.startTime = startTime;
+  if (endTime) updateFields.endTime = endTime;
+  if (room) updateFields.room = room;
+  if (notes) updateFields.notes = notes
+  
+try {
+  let appointment = await Appointment.findById(appointment_id);
+    if (!Appointment) return res.status(404).json({ msg: "Appointment not found" });
+
+    room = await Appointment.findByIdAndUpdate(appointment_id,
+      { $set: updateFields },
+      { $new: true }
+    );
+
+    res.status(200).json(appointment);
+
+} catch(error) {
+    console.error(error.message);
+    return res.status(500).json({error: error.message})
+
+}
+})
+
+
 //delete appointment
 //Either auth and it's your appointment, or admin.
 
@@ -139,9 +241,10 @@ router.delete("/:id", auth, async(req, res)=>{
     const appointment = await Appointment.findById(req.params.id)
   
     if(!appointment) {
-      return res.status(404).json({msg: "Apppointment not found"})
+      return res.status(404).json({msg: "Appointment not found"})
     }
-  //check user is allowed to delete post. It must be either their post or they must be an admin
+
+  //check user is allowed to delete appointment. It must be either their appointment or they must be an admin
   if((appointment.user.toString() !== req.user.id) && req.user.status !==1){
     return res.status(401).json({msg: "User not authorized"})
   }

@@ -79,7 +79,7 @@ router.put("/:id", admin, async (req, res) => {
   //build a user object based on the fields submitted
   const updateFields = {};
   if (name) updateFields.name = name;
-  if (capacity) updateFields.capacity = email;
+  if (capacity) updateFields.capacity = capacity;
   if (info) updateFields.info = info;
 
   try {
